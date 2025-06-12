@@ -1,8 +1,10 @@
 import express from 'express'
 import dotenv from 'dotenv'
 import { connectDB } from './lib/db.js'
-import authRoutes from './routes/auth.route.js'
 import cookieParser from 'cookie-parser'
+
+import messageRoutes from './routes/message.route.js'
+import authRoutes from './routes/auth.route.js'
 const app = express()
 
 dotenv.config()
@@ -17,5 +19,6 @@ app.get('/', (req, res) => {
 })
 
 app.use('/users', authRoutes)
+app.use('/messages', messageRoutes)
 
 export default app
