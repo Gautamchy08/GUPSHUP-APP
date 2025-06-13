@@ -10,13 +10,18 @@ import LoginPage from './pages/LoginPage'
 import SettingsPage from './pages/SettingsPage'
 import ProfilePage from './pages/ProfilePage'
 import Navbar from './components/Navbar'
+import { useThemeStore } from './store/useThemeStore'
 
 const App = () => {
   const { authUser, checkAuth, isCheckingAuth } = useAuthStore()
-
+  const { theme } = useThemeStore()
   useEffect(() => {
     checkAuth()
   }, [checkAuth])
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme)
+  }, [theme])
 
   if (isCheckingAuth && !authUser)
     return (
@@ -25,7 +30,7 @@ const App = () => {
       </div>
     )
   return (
-    <div>
+    <div data-theme={theme}>
       <Navbar />
 
       <Routes>
