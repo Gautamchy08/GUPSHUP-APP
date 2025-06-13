@@ -1,5 +1,5 @@
-import React from 'react'
-import { useState } from 'react'
+import React, { use } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Eye,
   EyeOff,
@@ -11,6 +11,8 @@ import {
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useAuthStore } from '../store/useAuthStore'
+import AuthImagePattern from '../components/AuthImagePattern'
+import toast from 'react-hot-toast'
 
 const SignUpPage = () => {
   const [showPassword, setShowPassword] = useState(false)
@@ -21,10 +23,29 @@ const SignUpPage = () => {
     confirmPassword: ''
   })
   const { signup, isSigningUp } = useAuthStore()
-  const validateForm = () => {}
+  const validateForm = () => {
+    if (!formData.fullName.trim()) return toast.error('Full Name is required')
+    if (!formData.email.trim()) return toast.error('Email is required')
+    if (!/\S+@\S+\.\S+/.test(formData.email))
+      return toast.error('Email is invalid')
+    if (!formData.password.trim()) return toast.error('Password is required')
+    if (formData.password.length < 6)
+      return toast.error('Password must be at least 6 characters')
+    // if (formData.password !== formData.confirmPassword)
+    //   return toast.error('Passwords do not match')
+
+    return true
+  }
+
   const handleSubmit = e => {
     e.preventDefault()
+    const success = validateForm()
+    if (success === true) {
+      signup(formData)
+    }
   }
+  // Validate form data
+
   return (
     <div className='min-h-screen grid lg:grid-cols-2'>
       {/* left side */}
@@ -58,7 +79,7 @@ const SignUpPage = () => {
                 <input
                   type='text'
                   placeholder='John Doe'
-                  className='input input-bordered w-full pl-10'
+                  className='input input-bordered  w-full pl-10'
                   value={formData.fullName}
                   onChange={e =>
                     setFormData({ ...formData, fullName: e.target.value })
@@ -142,6 +163,10 @@ const SignUpPage = () => {
           </div>
         </div>
       </div>
+      <AuthImagePattern
+        title=' join our community'
+        subtitle='connect with friends, share moments, and stay in touch with your loved ones.'
+      />
     </div>
   )
 }

@@ -1,6 +1,7 @@
 import React, { use, useEffect } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { Loader } from 'lucide-react'
+import { Toaster } from 'react-hot-toast'
 
 import { useAuthStore } from './store/useAuthStore'
 import HomePage from './pages/HomePage'
@@ -16,8 +17,6 @@ const App = () => {
   useEffect(() => {
     checkAuth()
   }, [checkAuth])
-
-  console.log(authUser)
 
   if (isCheckingAuth && !authUser)
     return (
@@ -48,6 +47,8 @@ const App = () => {
           element={authUser ? <ProfilePage /> : <Navigate to='/login' />}
         />
       </Routes>
+
+      <Toaster />
     </div>
   )
 }
