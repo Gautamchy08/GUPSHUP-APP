@@ -2,6 +2,7 @@ import cloudinary from 'cloudinary'
 
 import User from '../models/user.model.js'
 import Message from '../models/message.model.js'
+import { recieverSocketId, io, userSocketMap } from '../index.js'
 
 export const getUsersForSidebar = async (req, res) => {
   // Fetch all users except the currently logged-in user
@@ -51,8 +52,6 @@ export const sendMessage = async (req, res) => {
     // Validate sender and receiver IDs
 
     const senderId = req.user._id.toHexString()
-    console.log('id from req.user:', req.user._id)
-    console.log('original senderId:', senderId)
 
     if (!senderId) {
       return res.status(400).json({ message: 'User not authenticated' })
@@ -75,18 +74,21 @@ export const sendMessage = async (req, res) => {
       const uploadResponse = await cloudinary.uploader.upload(image)
       imageUrl = uploadResponse.secure_url
     }
-    // socket io code to emit the message can be added here if needed
 
     // Create a new message
-    console.log('senderId near create message in database:', senderId)
+
     const newMessage = new Message({
       senderId: senderId,
       recieverId,
       text,
       image: imageUrl
     })
-
     await newMessage.save()
+    console.log('trying to print senderId:', newMessage)
+    const getRecieverSocketId = recieverSocketId(recieverId)
+    if (getRecieverSocketId) {
+      io.to(getRecieverSocketId).emit('newMessage', newMessage)
+    }
     res.status(201).json(newMessage)
   } catch (err) {
     console.error('Error sending message:', err)
