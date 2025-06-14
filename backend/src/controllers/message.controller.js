@@ -49,19 +49,21 @@ export const sendMessage = async (req, res) => {
   try {
     const { id: recieverId } = req.params
     // Validate sender and receiver IDs
-    {
-      const senderId = req.user._id
-      if (!senderId) {
-        return res.status(400).json({ message: 'User not authenticated' })
-      }
-      if (!recieverId) {
-        return res.status(400).json({ message: 'Receiver ID is required' })
-      }
-      if (senderId === recieverId) {
-        return res
-          .status(400)
-          .json({ message: 'Cannot send message to yourself' })
-      }
+
+    const senderId = req.user._id.toHexString()
+    console.log('id from req.user:', req.user._id)
+    console.log('original senderId:', senderId)
+
+    if (!senderId) {
+      return res.status(400).json({ message: 'User not authenticated' })
+    }
+    if (!recieverId) {
+      return res.status(400).json({ message: 'Receiver ID is required' })
+    }
+    if (senderId === recieverId) {
+      return res
+        .status(400)
+        .json({ message: 'Cannot send message to yourself' })
     }
     const { text, image } = req.body
     if (!text && !image) {
@@ -76,8 +78,9 @@ export const sendMessage = async (req, res) => {
     // socket io code to emit the message can be added here if needed
 
     // Create a new message
+    console.log('senderId near create message in database:', senderId)
     const newMessage = new Message({
-      senderId,
+      senderId: senderId,
       recieverId,
       text,
       image: imageUrl

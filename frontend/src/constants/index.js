@@ -20,5 +20,6 @@ export const THEMES = [
   'wireframe',
   'black',
   'luxury',
-  'dracula'
+  'dracula',
+  'coffee'
 ]
