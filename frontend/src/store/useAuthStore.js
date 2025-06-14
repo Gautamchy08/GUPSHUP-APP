@@ -4,7 +4,8 @@ import { axiosInstance } from '../lib/axios'
 import toast from 'react-hot-toast'
 import { io } from 'socket.io-client'
 import { User } from 'lucide-react'
-const BASE_URL = 'http://localhost:5000'
+const BASE_URL =
+  import.meta.env.VITE_API_URL === 'development' ? 'http://localhost:5000' : '/'
 export const useAuthStore = create((set, get) => ({
   authUser: null,
   isSigningUp: false,
