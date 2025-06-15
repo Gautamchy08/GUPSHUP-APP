@@ -2,7 +2,7 @@ import cloudinary from 'cloudinary'
 
 import User from '../models/user.model.js'
 import Message from '../models/message.model.js'
-import { recieverSocketId, io, userSocketMap } from '../index.js'
+import { recieverSocketId, io } from '../lib/socket.js'
 
 export const getUsersForSidebar = async (req, res) => {
   // Fetch all users except the currently logged-in user
@@ -24,6 +24,11 @@ export const getUsersForSidebar = async (req, res) => {
 
 export const getMessages = async (req, res) => {
   const { id: userToChatId } = req.params
+
+  // Validate userToChatId
+  if (!userToChatId) {
+    return res.status(400).json({ message: 'User ID is required' })
+  }
   const myId = req.user._id
 
   if (!myId) {
@@ -84,7 +89,6 @@ export const sendMessage = async (req, res) => {
       image: imageUrl
     })
     await newMessage.save()
-    console.log('trying to print senderId:', newMessage)
     const getRecieverSocketId = recieverSocketId(recieverId)
     if (getRecieverSocketId) {
       io.to(getRecieverSocketId).emit('newMessage', newMessage)

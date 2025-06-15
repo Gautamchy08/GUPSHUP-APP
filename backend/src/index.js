@@ -1,42 +1,42 @@
-import http from 'http'
+import express from 'express'
+import dotenv from 'dotenv'
+import cookieParser from 'cookie-parser'
+import cors from 'cors'
 
-import app from './app.js'
-import { Server } from 'socket.io'
-const server = http.createServer(app)
+import path from 'path'
 
-const io = new Server(server, {
-  cors: {
-    origin: 'http://localhost:5173'
-  }
-})
-const userSocketMap = {}
-export function recieverSocketId (userId) {
-  return userSocketMap[userId]
+import { connectDB } from './lib/db.js'
+
+import authRoutes from './routes/auth.route.js'
+import messageRoutes from './routes/message.route.js'
+import { app, server } from './lib/socket.js'
+
+dotenv.config()
+
+const PORT = process.env.PORT
+const __dirname = path.resolve()
+
+app.use(express.json())
+app.use(cookieParser())
+app.use(
+  cors({
+    origin: 'http://localhost:5173',
+    credentials: true
+  })
+)
+
+app.use('/users', authRoutes)
+app.use('/messages', messageRoutes)
+
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, '../frontend/dist')))
+
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend', 'dist', 'index.html'))
+  })
 }
 
-io.on('connection', socket => {
-  console.log('a user connected:', socket.id)
-
-  const userId = socket.handshake.query.UserId
-
-  if (userId) {
-    userSocketMap[userId] = socket.id
-    console.log(`User ${userId} connected with socket ID: ${socket.id}`)
-    console.log(userId ? userSocketMap : 'user id not found')
-  }
-  io.emit('getOnelineUsers', Object.keys(userSocketMap))
-
-  socket.on('disconnect', () => {
-    delete userSocketMap[userId]
-    io.emit('getOnelineUsers', Object.keys(userSocketMap))
-    console.log('user disconnected:', socket.id)
-  })
-})
-
-const PORT = process.env.PORT || 3000
-
 server.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`)
+  console.log('server is running on PORT:' + PORT)
+  connectDB()
 })
-
-export { io, userSocketMap }

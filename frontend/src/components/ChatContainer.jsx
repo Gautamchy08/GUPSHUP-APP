@@ -50,14 +50,6 @@ const ChatContainer = () => {
       </div>
     )
   }
-  console.log('user who is here:', authUser)
-  messages.map((message, index) => {
-    if (message.senderId === authUser._id) {
-      console.log(true, 'message from auth user')
-    } else {
-      console.log(false, 'message from samne wala user')
-    }
-  })
 
   return (
     <div className='flex-1 flex flex-col overflow-auto '>

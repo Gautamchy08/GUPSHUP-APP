@@ -4,8 +4,9 @@ import { axiosInstance } from '../lib/axios'
 import toast from 'react-hot-toast'
 import { io } from 'socket.io-client'
 import { User } from 'lucide-react'
+
 const BASE_URL =
-  import.meta.env.VITE_API_URL === 'development' ? 'http://localhost:5000' : ''
+  import.meta.env.MODE === 'development' ? 'http://localhost:5001' : ''
 export const useAuthStore = create((set, get) => ({
   authUser: null,
   isSigningUp: false,
@@ -102,7 +103,7 @@ export const useAuthStore = create((set, get) => ({
 
   connectSocket: () => {
     const { authUser } = get()
-
+    console.log('authUser in connectSocket:', authUser.user._id)
     if (!authUser || get().socket?.connected) {
       console.log('authUser how are you', authUser)
       console.log('socket connection failed now', get().socket?.connected)
