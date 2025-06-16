@@ -3,10 +3,9 @@ import { create } from 'zustand'
 import { axiosInstance } from '../lib/axios'
 import toast from 'react-hot-toast'
 import { io } from 'socket.io-client'
-import { User } from 'lucide-react'
 
 const BASE_URL =
-  import.meta.env.MODE === 'development' ? 'http://localhost:5001' : ''
+  import.meta.env.MODE === 'development' ? 'http://localhost:5000' : ''
 export const useAuthStore = create((set, get) => ({
   authUser: null,
   isSigningUp: false,
@@ -20,7 +19,6 @@ export const useAuthStore = create((set, get) => ({
     try {
       const res = await axiosInstance.get('/users/check')
       console.log('user check status:', res.status)
-      console.log(res.data)
 
       if (res.status === 200 && res.data) {
         set({ authUser: res.data })
@@ -78,7 +76,7 @@ export const useAuthStore = create((set, get) => ({
       toast.success('Logged in successfully')
       get().connectSocket()
     } catch (error) {
-      toast.error(error.response.data?.message)
+      toast.error(error.response?.data?.message)
     } finally {
       set({ isLoggingIn: false })
     }
@@ -103,34 +101,46 @@ export const useAuthStore = create((set, get) => ({
 
   connectSocket: () => {
     const { authUser } = get()
-    console.log('authUser in connectSocket:', authUser.user._id)
+
     if (!authUser || get().socket?.connected) {
-      console.log('authUser how are you', authUser)
-      console.log('socket connection failed now', get().socket?.connected)
+      console.log('❌ Not connecting - no user or already connected')
       return
     }
+    const userId = authUser.user._id
+    console.log('👤 Connecting  socket with userId:', userId)
+
     const socket = io(BASE_URL, {
-      autoConnect: false,
-      reconnection: true,
-      reconnectionAttempts: Infinity,
-      reconnectionDelay: 1000,
-      reconnectionDelayMax: 5000,
       query: {
-        UserId: authUser.user._id // Use the correct user ID from authUser
+        userId: userId // ✅ Fixed: changed from 'UserId' to 'userId'
       }
     })
-    socket.connect()
+
     set({ socket: socket })
 
-    socket.on('getOnelineUsers', userIds => {
-      console.log('Online users:', userIds)
+    socket.on('connect', () => {
+      console.log('✅ Socket connected:', socket.id)
+    })
+
+    socket.on('connect_error', error => {
+      console.error('🚫 Socket connection error:', error)
+    })
+
+    socket.on('disconnect', reason => {
+      console.log('❌ Socket disconnected:', reason)
+    })
+
+    socket.on('getOnlineUsers', userIds => {
+      console.log('👥 Online users received:', userIds)
       set({ onlineUsers: userIds })
     })
   },
+
   disconnectSocket: () => {
-    if (get().socket?.connected) {
-      get().socket.disconnect()
-      set({ socket: null })
+    const socket = get().socket
+    if (socket?.connected) {
+      console.log('🔌 Disconnecting socket')
+      socket.disconnect()
     }
+    set({ socket: null })
   }
 }))
